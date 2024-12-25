@@ -26,6 +26,7 @@
 
 #include "DtaDevOpal1.h"
 #include "DtaDevOpal2.h"
+#include "DtaDevPyrite.h"  // Should be Pyrite1 and Pyrite2
 #include "DtaDevEnterprise.h"
 #include "DtaDevGeneric.h"
 
@@ -57,6 +58,8 @@ DtaDev* DtaDev::getDtaDev(const char * devref,
     LOG(D4) << "DtaDev::getDtaDev: discovery0 succeeded.";
     if (di.OPAL20)        return new DtaDevOpal2(devref, drive, di);
     if (di.OPAL10)        return new DtaDevOpal1(devref, drive, di);
+    if (di.PYRITE20)      return new DtaDevPyrite(devref, drive, di);  // TODO: should be Pyrite2
+    if (di.PYRITE10)      return new DtaDevPyrite(devref, drive, di);  // TODO: should be Pyrite1
     if (di.Enterprise)    return new DtaDevEnterprise(devref, drive, di);
     //  if (di.RUBY) ...  etc.
     LOG(D4) << "DtaDev::getDtaDev: no known SSC -- trying generic.";

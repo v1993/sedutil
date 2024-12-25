@@ -28,6 +28,8 @@ Common/DtaDevOpal2.cpp \
 Common/DtaDevOpal2.h \
 Common/DtaDevOpal.cpp \
 Common/DtaDevOpal.h \
+Common/DtaDevPyrite.cpp \
+Common/DtaDevPyrite.h \
 Common/DtaDrive.cpp \
 Common/DtaDrive.h \
 Common/DtaEndianFixup.h \
