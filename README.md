@@ -38,10 +38,10 @@ do not need this parameter.
 Source code is available on GitHub at https://github.com/Drive-Trust-Alliance/sedutil
 Note: symlinks are used to point from Customizations to one of the Customizations.XXX folders,
 e.g. Customizations.OpenSource, so to make sure Windows git properly creates those
-symbolic links, run git as Administrator and use `-c core.symlinks=true` in a command 
+symbolic links, run git as Administrator and use `-c core.symlinks=true` in a command
 line like this:
 ```
-git clone -c core.symlinks=true https://github.com/Drive-Trust-Alliance/sedutil
+git clone -c --recurse-submodules core.symlinks=true https://github.com/Drive-Trust-Alliance/sedutil
 ```
 
 Building under Arch Linux's minimalist environment requires the packages
