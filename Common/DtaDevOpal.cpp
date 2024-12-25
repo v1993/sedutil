@@ -254,7 +254,7 @@ uint8_t DtaDevOpal::initialSetup(char * password)
     LOG(E) << "Initial setup failed - unable to set global locking range RW " << dev;
     return lastRC;
   }
-  if ( isOpal2() || isOpal1()  ||  (device_info.PYRITE_version > 1 ) ) { // Opal2, pyrite 2 support mbr
+  if ( isOpal2() || isOpal1() ) {
     if ((lastRC = setMBRDone(1, password)) != 0) {
       LOG(E) << "Initial setup failed - unable to Enable MBR shadow " << dev;
       return lastRC;
@@ -322,7 +322,7 @@ uint8_t DtaDevOpal::initialSetup(vector<uint8_t> HostChallenge)
     LOG(E) << "Initial setup failed - unable to set global locking range RW " << dev;
     return lastRC;
   }
-  if ( isOpal2() || isOpal1()  ||  (device_info.PYRITE_version > 1 ) ) { // Opal2, pyrite 2 support mbr
+  if ( isOpal2() || isOpal1() ) {
     if ((lastRC = setMBRDone(1, HostChallenge)) != 0) {
       LOG(E) << "Initial setup failed - unable to Enable MBR shadow " << dev;
       return lastRC;

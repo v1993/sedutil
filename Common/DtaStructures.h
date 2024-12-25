@@ -258,6 +258,7 @@ typedef struct _Discovery0PYRITE {
   uint16_t featureCode; /* 0x0302 */
   uint8_t reserved_v : 4;
   uint8_t version : 4;
+
   uint8_t length;
   uint16_t baseCommID;
   uint16_t numCommIDs;
