@@ -247,15 +247,28 @@ DtaOS::dictionary * DtaLinux::getOSSpecificInformation(OSDEVICEHANDLE osDeviceHa
     size_t device_info_nybbles = 2 * sizeof(device_info.worldWideName);
     LOG(D3) << "device_info_nybbles=" << device_info_nybbles;
 
-    intptr_t length_difference =  device_info_nybbles - 1 - WWN_length ;
-    LOG(D3) << "length_difference=" << length_difference;
 
-    if (0 < length_difference) {
-      str_WWN += std::string(length_difference, '0');
+    if (device_info.devType == DEVICE_TYPE_NVME)  {
+      intptr_t length_difference =  device_info_nybbles - WWN_length ;
+      LOG(D3) << "length_difference=" << length_difference;
+
+      if (0 < length_difference) {
+        str_WWN += std::string(length_difference, '0');
+      } else {
+        str_WWN = str_WWN.substr(-length_difference, device_info_nybbles );
+      }
     } else {
-      str_WWN = str_WWN.substr(-length_difference, device_info_nybbles - 1);
+      intptr_t length_difference =  device_info_nybbles - 1 - WWN_length ;
+      LOG(D3) << "length_difference=" << length_difference;
+
+      if (0 < length_difference) {
+        str_WWN += std::string(length_difference, '0');
+      } else {
+        str_WWN = str_WWN.substr(-length_difference, device_info_nybbles - 1);
+      }
+      str_WWN =std::string(1, '5' ) + str_WWN;
     }
-    str_WWN =std::string(1, ( device_info.devType == DEVICE_TYPE_NVME ? '0' : '5' )) + str_WWN;
+
 
     LOG(D3) << "str_WWN is " << str_WWN;
     LOG(D3) << "str_WWN.length()=" << str_WWN.length();

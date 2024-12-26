@@ -65,9 +65,9 @@ DtaNvmeDrive::parseIdentifyResponse(const unsigned char * response,
   const uint8_t *results = reinterpret_cast<const uint8_t *>(response);
   results += 4;
   safecopy(device_info.serialNum, sizeof(device_info.serialNum), results, sizeof(device_info.serialNum));
-  results += sizeof(device_info.serialNum);
+  results += 20;
   safecopy(device_info.modelNum, sizeof(device_info.modelNum), results, sizeof(device_info.modelNum));
-  results += sizeof(device_info.modelNum);
+  results += 40;
   safecopy(device_info.firmwareRev, sizeof(device_info.firmwareRev), results, sizeof(device_info.firmwareRev));
 
   memcpy(interfaceDeviceIdentification, response, sizeof(InterfaceDeviceID));
@@ -138,6 +138,7 @@ bool DtaNvmeDrive::identifyUsingNvmeIdentify(OSDEVICEHANDLE osDeviceHandle,
   LOG(D4) << "Entering DtaNvmeDrive::identifyUsingNvmeIdentify";
 
   uint8_t ctrl[4096];
+  memset(ctrl, 0, sizeof(ctrl));
 
   struct nvme_admin_cmd cmd;
   memset(&cmd, 0, sizeof(cmd));
@@ -146,7 +147,7 @@ bool DtaNvmeDrive::identifyUsingNvmeIdentify(OSDEVICEHANDLE osDeviceHandle,
   cmd.opcode = NVME_IDENTIFY;
   cmd.nsid = 0;
   cmd.addr = (unsigned long long)&ctrl;
-  cmd.data_len = 4096;
+  cmd.data_len = sizeof(ctrl);
   cmd.cdw10 = 1;
 
   int err = OS.PerformNVMeCommand(osDeviceHandle, reinterpret_cast<uint8_t *>(&cmd));
@@ -163,6 +164,8 @@ bool DtaNvmeDrive::identifyUsingNvmeIdentify(OSDEVICEHANDLE osDeviceHandle,
 
   IFLOG(D4) {
     LOG(D4) << "Nvme Identify succeeded." ;
+    LOG(D4) << "cmd (command buffer):" ;
+    DtaHexDump(&cmd, sizeof(cmd));
     LOG(D4) << "ctrl (data buffer):" ;
     DtaHexDump(&ctrl, sizeof(ctrl));
   }
