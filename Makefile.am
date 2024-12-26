@@ -30,6 +30,10 @@ Common/DtaDevOpal.cpp \
 Common/DtaDevOpal.h \
 Common/DtaDevPyrite.cpp \
 Common/DtaDevPyrite.h \
+Common/DtaDevPyrite1.cpp \
+Common/DtaDevPyrite1.h \
+Common/DtaDevPyrite2.cpp \
+Common/DtaDevPyrite2.h \
 Common/DtaDrive.cpp \
 Common/DtaDrive.h \
 Common/DtaEndianFixup.h \

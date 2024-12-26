@@ -154,15 +154,28 @@ bool DtaNvmeDrive::identifyUsingNvmeIdentify(OSDEVICEHANDLE osDeviceHandle,
   if (err) {
     device_info.devType = DEVICE_TYPE_OTHER;
     LOG(D4) << "Nvme Identify error. NVMe status " << err;
-    IFLOG(D4) DtaHexDump(&cmd, sizeof(cmd));
-    IFLOG(D4) DtaHexDump(&ctrl, sizeof(ctrl));
+    IFLOG(D4) {
+      DtaHexDump(&cmd, sizeof(cmd));
+      DtaHexDump(&ctrl, sizeof(ctrl));
+    }
     return false;
+  }
+
+  IFLOG(D4) {
+    LOG(D4) << "Nvme Identify succeeded." ;
+    LOG(D4) << "ctrl (data buffer):" ;
+    DtaHexDump(&ctrl, sizeof(ctrl));
   }
 
   dictionary * responses = parseIdentifyResponse(ctrl,interfaceDeviceIdentification,device_info);
 
-  (void)responses; // TODO: Or make use of this here!
-
+  IFLOG(D4) {
+    LOG(D4) << "responses:" ;
+    for (dictionary::iterator it = responses->begin(); it != responses->end(); it++)
+      LOG(D4) << it->first    // string (key)
+              << ':'
+              << it->second;  // string's value
+  }
   delete responses;
   return true;
 }

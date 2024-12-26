@@ -47,7 +47,7 @@ git clone -c --recurse-submodules core.symlinks=true https://github.com/Drive-Tr
 Building under Arch Linux's minimalist environment requires the packages
  - base-devel
  - libnvme
-in addition to whatever you need to get going as a Linux installation, e.g. networking.
+in addition to whatever you need to get going as a Linux installation, e.g. networking like iwctl.
 
 
 Linux and Windows executables are available at https://github.com/Drive-Trust-Alliance/sedutil/wiki/Executable-Distributions

@@ -37,8 +37,10 @@ using namespace std;
 * the bytestream.
 */
 class DtaCommand {
-	friend class DtaDevOpal;
-	friend class DtaDevEnterprise;
+  // TODO: These are symptomatic of problems
+  friend class DtaDevOpal;
+  friend class DtaDevPyrite;
+  friend class DtaDevEnterprise;
 public:
     /** Default constructor, allocates the command and resonse buffers. */
     DtaCommand();

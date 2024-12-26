@@ -638,8 +638,8 @@ uint8_t DtaDev::diskScan()
 
 
     IFLOG(D1) {
-      string const header1{" SSC        Model Number       Firmware Locn   World Wide Name        Serial Number     Vendor      Manufacturer Name\n"};
-      string const header2{" --- ------------------------- -------- -----  ----------------   --------------------  -------  -----------------------\n"};
+      string const header1{" SSC          Model Number       Firmware Locn   World Wide Name        Serial Number     Vendor      Manufacturer Name\n"};
+      string const header2{" ----- ------------------------- -------- -----  ----------------   --------------------  -------  -----------------------\n"};
 
       string const padded_column_headers   {padded_column_header    + header1};
       string const padded_column_underlines{padded_column_underline + header2};
@@ -667,12 +667,14 @@ uint8_t DtaDev::diskScan()
 
         fprintf(Output2FILE::StreamStdout(), "%-*s", (int)device_column_width, devref.c_str());
         if (dev->isAnySSC()) {
-          fprintf(Output2FILE::StreamStdout(), " %s%s%s ",
+          fprintf(Output2FILE::StreamStdout(), " %s%s%s%s%s ",
                   (dev->isOpal1()  ? "1" : " "),
                   (dev->isOpal2()  ? "2" : " "),
+                  (dev->isPyrite()  ? "1" : " "),
+                  (dev->isPyrite2()  ? "2" : " "),
                   (dev->isEprise() ? "E" : " "));
         } else {
-          fprintf(Output2FILE::StreamStdout(), "%s", " No  ");
+          fprintf(Output2FILE::StreamStdout(), "%s", " No    ");
         }
 
         IFLOG(D1) {
@@ -720,4 +722,113 @@ DtaDev::~DtaDev()
     delete drive;
     drive = NULL;
   }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////
+void SignalHandler(int signal)
+{
+  printf("Signal %d\n", signal);
+  throw "!Access Violation!";
+}
+
+////////////////////////////////////////////////////////////////////
+
+
+
+vector<uint8_t> hex2data_a(char * password)
+{
+  vector<uint8_t> h;
+  h.clear();
+  if ((false))
+    printf("strlen(password)=%d\n", (int)strlen(password));
+  /*
+    if (strlen(password) != 16)
+    {
+    //LOG(D) << "Hashed Password length isn't 64-byte, no translation";
+    h.clear();
+    for (uint16_t i = 0; i < (uint16_t)strnlen(password, 32); i++)
+    h.push_back(password[i]);
+    return h;
+    }
+  */
+
+  //printf("GUI hashed password=");
+  for (uint16_t i = 0; i < (uint16_t)strlen(password); i += 2)
+    {
+      h.push_back(
+                  (hex_digit_to_nybble(password[i])) * 10 +  // high 4-bit
+                  (hex_digit_to_nybble(password[i + 1]) & 0x0f)); // lo 4-bit
+    }
+  //for (uint16_t i = 0; i < (uint16_t)h.size(); i++)
+  //	printf("%02x", h[i]);
+  //printf("\n");
+  return h;
+}
+/*
+  OPAL_UID getUIDtoken(char * userid)
+  {
+  // translate UserN AdminN into <int8_t
+  uint8_t id;
+
+  if (!memcmp("User", userid, 4)) {// UserI UID
+  id = (uint8_t)(OPAL_UID::OPAL_USER1_UID) + atoi(&userid[4]) - 1;
+  IFLOG(D4) printf("UserN=%s enum=%d\n", userid, id);
+  return  (OPAL_UID)id;
+  }
+  else
+  {
+  id = (uint8_t)(OPAL_UID::OPAL_ADMIN1_UID) + atoi(&userid[4]) -1 ;
+  printf("AdminN=%s enum=%d\n", userid, id);
+  return  (OPAL_UID)id;
+  }
+  }
+*/
+
+vector<uint8_t> getUID(char * userid, vector<uint8_t> &auth2, vector<uint8_t> &auth3, uint8_t hu)
+{
+  // translate UserN AdminN into <int8_t
+  vector<uint8_t> auth;
+  ;
+  uint8_t id = 1;
+  auth.push_back(OPAL_SHORT_ATOM::BYTESTRING8);
+  auth2.push_back(OPAL_SHORT_ATOM::BYTESTRING8);
+  auth3.push_back(OPAL_SHORT_ATOM::BYTESTRING8);
+
+
+  if (!memcmp("User", userid, 4)) {// UserI UID
+    if (strnlen(userid, 6) == 5) {
+      id = (uint8_t)atoi(&userid[4]); // (uint8_t)atoi(argv[opts.dsnum])
+    }
+    else if (strnlen(userid, 6) == 6) {
+      id = ((uint8_t)atoi(&userid[4]));
+    }
+
+    //IFLOG(D4) printf("UserN : %s traslated id = %d\n", userid,id);
+    for (int i = 0; i < 7; i++) {
+      auth.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID][i]);
+      auth2.push_back(OPALUID[OPAL_UID::OPAL_ADMIN1_UID][i]);
+      auth3.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID + (hu - 1)][i]);
+      //auth3.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID][i]); // first 7-byte is all the same as OPAL_USER1_UID, the only difference is the 8th byte
+    }
+    auth.push_back(id);
+    auth2.push_back(1); // always admin1 or user1
+  }
+  else { // "Admin"
+    //IFLOG(D4) printf("AdminN %s\n", userid);
+    id = (uint8_t)atoi(&userid[5]);
+    for (int i = 0; i < 7; i++) {
+      auth.push_back(OPALUID[OPAL_UID::OPAL_ADMIN1_UID][i]);
+      auth2.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID][i]);
+      auth3.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID+(hu-1)][i]);
+      //auth3.push_back(OPALUID[OPAL_UID::OPAL_USER1_UID][i]);
+    }
+    auth.push_back(id); // AdminN
+    auth2.push_back(1); // always admin1
+  }
+  //auth.push_back(id);
+  //auth2.push_back(1); // always admin1 or user1
+  auth3.push_back(hu); // always audit user
+  return auth;
 }

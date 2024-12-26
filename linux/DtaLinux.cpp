@@ -188,6 +188,29 @@ DtaOS::dictionary * DtaLinux::getOSSpecificInformation(OSDEVICEHANDLE osDeviceHa
   sd_device_unref(device);
 
 
+  std::string bus=deviceProperties["ID_BUS"];
+  std::string devpath=deviceProperties["DEVPATH"];
+
+
+  if (bus=="scsi") {
+    device_info.devType = DEVICE_TYPE_SCSI;
+  } else if (bus == "usb") {
+    if (deviceProperties["ID_USB_DRIVER"]=="uas") {
+      device_info.devType = DEVICE_TYPE_SAS;
+      //    } else if (deviceProperties["ID_USB_DRIVER"]=="usb-storage") {
+      //      device_info.devType = DEVICE_TYPE_NVME;
+    }
+  } else if (bus == "ata") {
+    if (deviceProperties["ID_USB_DRIVER"]=="uas") {
+      device_info.devType = DEVICE_TYPE_USB;
+    } else {
+      device_info.devType = DEVICE_TYPE_ATA;
+    }
+  } else if (bus == "nvme"
+          || devpath.find("/nvme/") != std::string::npos) {
+    device_info.devType = DEVICE_TYPE_NVME;
+  }
+
   // Copy device properties from `deviceProperties` into `device_info`
 #define getDeviceProperty(key,field)                                    \
   do                                                                    \
@@ -197,7 +220,7 @@ DtaOS::dictionary * DtaLinux::getOSSpecificInformation(OSDEVICEHANDLE osDeviceHa
       safecopy(device_info.field, sizeof(device_info.field), (uint8_t *)deviceProperty.c_str(), strlen(deviceProperty.c_str())); \
     } while (0)
 
-  LOG(D3) << "Device properties from os:";
+  LOG(D3) << "Device properties from linux:";
   getDeviceProperty(ID_SERIAL_SHORT,serialNum) ;
   getDeviceProperty(ID_MODEL,modelNum) ;
   getDeviceProperty(ID_REVISION,firmwareRev) ;
@@ -232,7 +255,7 @@ DtaOS::dictionary * DtaLinux::getOSSpecificInformation(OSDEVICEHANDLE osDeviceHa
     } else {
       str_WWN = str_WWN.substr(-length_difference, device_info_nybbles - 1);
     }
-    str_WWN = std::string(1, '5') + str_WWN;
+    str_WWN =std::string(1, ( device_info.devType == DEVICE_TYPE_NVME ? '0' : '5' )) + str_WWN;
 
     LOG(D3) << "str_WWN is " << str_WWN;
     LOG(D3) << "str_WWN.length()=" << str_WWN.length();
@@ -268,29 +291,6 @@ DtaOS::dictionary * DtaLinux::getOSSpecificInformation(OSDEVICEHANDLE osDeviceHa
   copyDeviceIdentificationField(vendorID,INQUIRY_VENDOR_IDENTIFICATION_Length);
   copyDeviceIdentificationField(modelNum,INQUIRY_PRODUCT_IDENTIFICATION_Length);
   copyDeviceIdentificationField(firmwareRev,INQUIRY_PRODUCT_REVISION_LEVEL_Length);
-
-  std::string bus=deviceProperties["ID_BUS"];
-  std::string devpath=deviceProperties["DEVPATH"];
-
-
-  if (bus=="scsi") {
-    device_info.devType = DEVICE_TYPE_SCSI;
-  } else if (bus == "usb") {
-    if (deviceProperties["ID_USB_DRIVER"]=="uas") {
-      device_info.devType = DEVICE_TYPE_SAS;
-      //    } else if (deviceProperties["ID_USB_DRIVER"]=="usb-storage") {
-      //      device_info.devType = DEVICE_TYPE_NVME;
-    }
-  } else if (bus == "ata") {
-    if (deviceProperties["ID_USB_DRIVER"]=="uas") {
-      device_info.devType = DEVICE_TYPE_USB;
-    } else {
-      device_info.devType = DEVICE_TYPE_ATA;
-    }
-  } else if (bus == "nvme"
-          || devpath.find("/nvme/") != std::string::npos) {
-    device_info.devType = DEVICE_TYPE_NVME;
-  }
 
   // Return properties dictionary both as in indication of success and for futher mischief
   return pDeviceProperties;
